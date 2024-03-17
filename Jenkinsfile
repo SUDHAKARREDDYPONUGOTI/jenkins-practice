@@ -1,10 +1,12 @@
 pipeline {
-
     //agent adds bassed on the label name
     agent {
         node {
             label 'AGENT-1'
         }
+    }
+    environment { 
+        GREETING = 'Jenkins'
     }
     //build-- 
     stages {
@@ -15,7 +17,11 @@ pipeline {
         }
         stage('Example Deploy') {
             steps {
-                echo 'New Deploying'
+                sh """
+                    echo "hello shell script"
+                    env
+
+                """
             }
         }
     }
