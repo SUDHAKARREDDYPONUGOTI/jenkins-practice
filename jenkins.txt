@@ -1,0 +1,253 @@
+Jenkins:
+=========
+Install Links:
+Redhat and centos:
+
+  sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+  sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+  
+  sudo yum install fontconfig java-17-openjdk -y
+  sudo yum install jenkins -y
+  
+  Sudo su -
+  
+  systemctl start jenkins
+  systemctl enable jenkins
+  systemctl status jenkins
+  
+  ==================================
+  
+  Jenkins Concepts:
+  
+  1.Freestyle Project :old one no one can use in projects
+  
+  2.Pipeline :  using projects 
+  
+   Jenkins Master
+   Agents concept  - Agents are adding[ Manage Jenkins --->  Node ]
+   
+   Master:
+   jenkins path --.   /var/lib/Jenkins
+   
+   Agent : we said to set : 
+   /home/centos/jenkins-agent
+   Shoild install JAVA in aget otherwise Jenkins is not workig in Agent
+   
+   launch method:  
+   
+   1. Master ask to Agent to do work
+   2. employee come tomaster and ask to assign work
+   
+   ** once agent created with SSH-AUTH [ Credentials ]  --go to ManageJnekins and Credentials --> udpate the password
+   
+ Agent:
+======== 
+   pipeline {   
+	agent { 
+	 node{
+	   label "AGENT-1"    ==>  AGENT - LABEL name we are mentioned in theion of creat Agent
+	 }	
+	} 
+   }
+  
+ build:
+ =====
+ 
+ stages{
+	stage{
+		
+	}
+ }
+ 
+ Agent Connection Error:
+ 
+ while try to connect Agent  Getting below connection error:
+ var/lib/jenkins/.ssh/known_hosts [SSH] No Known Hosts file was found at /var/lib/jenkins/.ssh/known_hosts. Please ensure one is created at this path and that Jenkins can read it.
+ 
+ I got the same error while launching slave.It has to do with the SSH Slave Plugin. What worked for me was changing the Host key verification strategy in LAUNCH METHOD from "Known Hosts file verification strategy" to "Manually trusted key verification strategy".
+ 
+ 
+ WebHooks:
+ =========
+ Git lo need to config webhooks option 
+ and Jenkins also select -- github hooks option
+ 
+ =======================================================================================================
+ pipeline {
+    //agent adds bassed on the label name
+    agent {
+        node {
+            label 'AGENT-1'
+        }
+    }
+    environment { 
+        GREETING = 'Jenkins'
+    }
+
+    // this job run in 1 seconds/hours , with in te limit not running it will exit
+    options {
+        timeout(time: 1, unit: 'HOURS') 
+        disableConcurrentBuilds()      // it wont allow two builds at a Time - remove concurrence
+    }
+
+    parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
+
+        text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
+
+        booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
+
+        choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
+
+        password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
+    }
+    //build-- 
+    stages {
+        stage('Example Build') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Example Deploy') {
+            steps {
+                sh """
+                    echo "hello shell script"
+                    echo '$GREETING'
+
+                """
+            }
+        }
+        stage('Param Checking') {
+            steps {
+                echo "Hello ${params.PERSON}"
+
+                echo "Biography: ${params.BIOGRAPHY}"
+
+                echo "Toggle: ${params.TOGGLE}"
+
+                echo "Choice: ${params.CHOICE}"
+
+                echo "Password: ${params.PASSWORD}"
+            }
+        }
+    }
+    // post build -- 
+    post { 
+        always { 
+            echo 'I will always say Hello again!'
+        }
+        // this runs when failures 
+        failure { 
+            echo 'this runs when build failures say Hello again!'
+        }
+        // this is success
+        success { 
+            echo 'this runs when build failures say Hello again!'
+        }
+    }
+
+}
+
+=========================================================================================
+
+
+Input : 
+=====
+
+roboshop-infra
+01-vpc  create Jenkins file 
+
+terraform commands run by using Jenkins files
+
+AGENT:
+Should install terraform in agent
+
+**when you conigure aws configure only normal user not AWS User**
+
+For colors ==>  should install plugns in Manage Jenkins--> plugins
+After install plugins restart Jenkins.
+
+Options{
+	ansiColor('xterm')
+
+}
+
+When - condition:
+==================
+write one params like;
+
+==============================
+roboshop project:
+
+catalogue:
+copy code from docs and unzip it 
+create new repo
+
+
+pipeline utility plugin ---> to read json file data
+
+usage:
+grrovy script:
+
+Stages {
+	stage{
+		steps{
+			script{
+				here groovy script
+				
+				def packageVersion = readjson
+			}
+		}
+	}
+}
+environment {
+	
+}
+
+Build the project>
+
+Build is stored into NEXUS  Repository:
+
+NEXUS:  and Similar tool - JFROG
+=================================
+artifactory stoarage, don't store code here.
+compile applications, zip file, war files, Build files.
+It is singlepoint of contatc for artifact and libreries ( not inerest to downloaad from internet), intenet disbae in some companies so they storede from here.
+
+
+
+Create nexus server - t3.medium, 30 GB
+
+cmd:  labauto
+
+getting nexus git repo and type nexus 
+nexus - getting installation options select '2' - installed
+
+netstat -lntp   ==> 8081 port running for nexus
+
+
+maven2:
+cerate Group:
+group id -->  com.roboshop
+artifact Id -->
+version -->
+
+zip fiels and foldes in linux with excluded files
+
+cmmand :-  
+zip -r catalogue.zip ./* -x ".git" -x ".zip"
+
+check:-   unzip catalogue.zip
+
+after deployement must delete the directory
+
+POST{
+	alwas{
+		deleteDir()
+		}
+}
+
+
+"-q"  is quite the logs --> when gettingheavy logs need to silent few things
+
+zip - q-r catalogue.zip ./* -x ".git" -x ".zip"
